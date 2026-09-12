@@ -129,6 +129,14 @@ with `dsh plugin add file:<tarball>`, and asserts that the composed profile tree
 contains the `mcp-manager` row. That is the gate that separates "works from a
 checkout with `link:`" from "works the way a user installs it".
 
+## Releasing
+
+The `version` in `package.json`, the `v<version>` git tag and the top section of
+`CHANGELOG.md` move together; pushing the tag runs
+`.github/workflows/release.yml`, which publishes the version to npm when it is
+new and opens the GitHub Release. The full runbook — tag rules, the release
+checklist and the npm token setup — is in [RELEASING.md](RELEASING.md).
+
 ## Licence
 
 MIT, with the upstream copyright notice retained — see [LICENSE](LICENSE) and

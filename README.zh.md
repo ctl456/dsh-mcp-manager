@@ -115,6 +115,13 @@ npm run verify:install
 profile，并断言组合出的 profile 树里出现 `mcp-manager` 行。这道关卡区分了
 “用 `link:` 从 checkout 能跑”和“用户按正常方式安装能跑”。
 
+## 发布
+
+`package.json` 里的 `version`、`v<版本号>` 的 git tag 和 `CHANGELOG.md` 顶部
+那一节是绑在一起走的；推送 tag 会运行 `.github/workflows/release.yml`，版本在
+npm 上还不存在时发布它，并创建 GitHub Release。完整流程（tag 规范、发布清单、
+npm token 配置）见 [RELEASING.zh.md](RELEASING.zh.md)。
+
 ## 许可
 
 MIT，保留上游版权声明 —— 见 [LICENSE](LICENSE) 与 [NOTICE.md](NOTICE.md)。
