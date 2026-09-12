@@ -34,7 +34,17 @@ jobs:
           set -euo pipefail
           name="$(node -p "require('./package.json').name")"
           version="$(node -p "require('./package.json').version")"
+          # `npm view` reads the package metadata document, and right after a
+          # publish that document can still be a cached 404 on the registry CDN.
+          # The version's tarball URL is not cached the same way, so it is the
+          # tie-breaker that keeps this step from re-publishing.
+          published=false
           if npm view "$name@$version" version >/dev/null 2>&1; then
+            published=true
+          elif curl -fsS -o /dev/null "https://registry.npmjs.org/${name}/-/${name##*/}-${version}.tgz"; then
+            published=true
+          fi
+          if [ "$published" = true ]; then
             echo "$name@$version is already on npm — nothing to publish"
           elif [ -z "${NODE_AUTH_TOKEN:-}" ]; then
             echo "::error::$name@$version is not on npm and the NPM_TOKEN secret is not set. Add the secret, or publish this version from your machine."
