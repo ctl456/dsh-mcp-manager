@@ -63,9 +63,17 @@ enabled is required to publish packages.
 ```
 
 That is npm policy, not a problem with this repository. Turn on 2FA once, at
-npmjs.com → Account → Two-Factor Authentication. After that `npm publish` asks
-for a one-time code, and the CLI retries by itself if the first attempt is
-rejected.
+npmjs.com → Account → Two-Factor Authentication.
+
+What `npm publish` then does depends on the method you enrolled:
+
+- **Authenticator app**: it asks for a one-time code on stdin.
+- **Security key or passkey**: it prints a `https://www.npmjs.com/auth/cli/...`
+  link and waits. Open it, approve, and the CLI finishes by itself; the link is
+  short-lived, so approve within a couple of minutes.
+
+The interactive step disappears entirely once a granular token with **Bypass
+2FA** is in `~/.npmrc`, or supplied as `NPM_TOKEN` in CI.
 
 For releases without a human at the keyboard, create a granular access token
 with **Bypass 2FA** enabled and read/write access to this package, and use it as

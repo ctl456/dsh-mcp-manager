@@ -61,8 +61,16 @@ enabled is required to publish packages.
 ```
 
 这是 npm 的政策，不是仓库的问题。去 npmjs.com → Account →
-Two-Factor Authentication 开一次 2FA 就好。开完之后 `npm publish` 会让你输入
-一次性验证码；如果第一次请求被拒，CLI 会自己重试并提示。
+Two-Factor Authentication 开一次 2FA 就好。
+
+之后 `npm publish` 的行为取决于你登记的方式：
+
+- **验证器 App**：它会在终端里要一次性验证码。
+- **安全密钥 / passkey**：它会打印一个 `https://www.npmjs.com/auth/cli/...`
+  链接并等待。打开、批准，CLI 会自己继续；链接存活时间很短，要尽快确认。
+
+只要把带 **Bypass 2FA** 的 granular token 写进 `~/.npmrc`，或者在 CI 里作为
+`NPM_TOKEN` 提供，这个交互步骤就完全没有了。
 
 需要无人值守发布时，创建一个勾选了 **Bypass 2FA**、并对本包有读写权限的
 granular access token，当作下面说的 `NPM_TOKEN` secret 使用。
