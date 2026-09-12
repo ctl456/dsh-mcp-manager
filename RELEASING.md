@@ -53,11 +53,28 @@ publishes to npm when that version is not on npm yet, and opens the GitHub
 Release with generated notes. Both halves are idempotent, so re-running the
 workflow never publishes the same version twice.
 
+## Two-factor authentication
+
+npm refuses to publish from an account without two-factor authentication:
+
+```
+E403 ... Two-factor authentication or granular access token with bypass 2fa
+enabled is required to publish packages.
+```
+
+That is npm policy, not a problem with this repository. Turn on 2FA once, at
+npmjs.com → Account → Two-Factor Authentication. After that `npm publish` asks
+for a one-time code, and the CLI retries by itself if the first attempt is
+rejected.
+
+For releases without a human at the keyboard, create a granular access token
+with **Bypass 2FA** enabled and read/write access to this package, and use it as
+the `NPM_TOKEN` secret described below.
+
 ## Publishing by hand
 
 When the workflow cannot publish — no `NPM_TOKEN` secret yet, or an npm outage —
-the same version can go out from your machine, because `npm login` already gave
-you the credentials:
+the same version can go out from your machine:
 
 ```sh
 npm publish                      # runs verify-release.mjs through prepublishOnly
@@ -67,11 +84,15 @@ git push origin v0.1.1           # the workflow sees the version on npm and only
 
 ## Letting the workflow publish
 
-Create a granular npm token with read and write access to this package
-(npmjs.com → Access Tokens → Generate New Token → Granular Access Token), then
-add it to the repository as the `NPM_TOKEN` secret
-(Settings → Secrets and variables → Actions → New repository secret). Until that
-secret exists, the workflow still runs and simply skips the npm step.
+Create a granular npm token with **Bypass 2FA** enabled and read and write access
+to this package (npmjs.com → Access Tokens → Generate New Token → Granular
+Access Token), then add it to the repository as the `NPM_TOKEN` secret
+(Settings → Secrets and variables → Actions → New repository secret).
+
+Until that secret exists, publish by hand and then push the tag: the workflow
+sees the version on npm, skips the npm step, and only opens the Release. If the
+version is missing from npm *and* the secret is unset, the workflow fails there
+on purpose rather than leaving a tag with no artifact behind it.
 
 As an alternative to a long-lived token, npm supports trusted publishing: link
 this repository and the `release.yml` workflow on the package's npm settings

@@ -51,10 +51,26 @@ git push origin v0.1.1
 还不在 npm 上就发布，然后创建 GitHub Release 并生成 notes。两步都是幂等的，
 重复运行 workflow 不会把同一个版本发两次。
 
+## 双因素认证（2FA）
+
+账号没开双因素认证时，npm 会拒绝发布：
+
+```
+E403 ... Two-factor authentication or granular access token with bypass 2fa
+enabled is required to publish packages.
+```
+
+这是 npm 的政策，不是仓库的问题。去 npmjs.com → Account →
+Two-Factor Authentication 开一次 2FA 就好。开完之后 `npm publish` 会让你输入
+一次性验证码；如果第一次请求被拒，CLI 会自己重试并提示。
+
+需要无人值守发布时，创建一个勾选了 **Bypass 2FA**、并对本包有读写权限的
+granular access token，当作下面说的 `NPM_TOKEN` secret 使用。
+
 ## 手动发布
 
 workflow 发布不了的时候（还没配 `NPM_TOKEN`，或者 npm 出故障），可以用本机
-发同一个版本，因为 `npm login` 已经给了你凭证：
+发同一个版本：
 
 ```sh
 npm publish                      # 通过 prepublishOnly 执行 verify-release.mjs
@@ -64,11 +80,14 @@ git push origin v0.1.1           # workflow 发现版本已在 npm 上，只创�
 
 ## 让 workflow 自动发布
 
-在 npmjs.com 上创建一个对本包有读写权限的 granular token
-（Access Tokens → Generate New Token → Granular Access Token），然后把它作为
+在 npmjs.com 上创建一个勾选了 **Bypass 2FA**、并对本包有读写权限的 granular
+token（Access Tokens → Generate New Token → Granular Access Token），把它作为
 `NPM_TOKEN` secret 加到仓库里
 （Settings → Secrets and variables → Actions → New repository secret）。
-在这个 secret 存在之前，workflow 照常运行，只是跳过 npm 那一步。
+
+在这个 secret 存在之前，先手动发布再推 tag：workflow 会看到版本已在 npm 上，
+跳过 npm 那一步，只创建 Release。如果版本不在 npm 上**且** secret 没配置，
+workflow 会在这里故意失败，而不是留下一个没有产物的 tag。
 
 除了长期 token，npm 还支持 trusted publishing：在本包的 npm 设置页把仓库和
 `release.yml` workflow 关联起来，workflow 就用 OIDC 身份认证，不再需要 secret。
