@@ -1,8 +1,7 @@
 # This optional Profile layer registers the MCP server manager: the
-# mcp_manager_* tools and the Settings -> Plugins -> Plugin configuration ->
-# "MCP servers" card. The registry starts empty; servers are added from the
-# card or by the model, and the row owns one child dsh-mcp-client per enabled
-# entry.
+# mcp_manager_* tools and the "MCP servers" settings page. The registry starts
+# empty; servers are added from the page or by the model, and the row owns one
+# child dsh-mcp-client per enabled entry.
 
 - insert:
     - id: mcp-manager

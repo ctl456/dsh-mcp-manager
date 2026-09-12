@@ -46,9 +46,9 @@ dsh plugin --profile web add file:/绝对路径/dsh-mcp-manager-0.1.0.tgz
 
 ## 在 Web UI 中使用
 
-打开 **设置 → 插件 → 插件配置**，展开 **MCP 服务器**。
+打开 **设置 → MCP 服务器** —— 设置导航里的独立页面，位于 **Agent 预设** 下方。
 
-![首次打开的 MCP 服务器卡片：已配置列表为空，下方是添加表单](docs/images/mcp-servers-card.zh.png)
+![首次打开 MCP 服务器页面：空列表上方是筛选框和添加服务器按钮](docs/images/mcp-servers-card.zh.png)
 
 | 字段 | 含义 |
 |---|---|
@@ -58,12 +58,16 @@ dsh plugin --profile web add file:/绝对路径/dsh-mcp-manager-0.1.0.tgz
 | 服务地址 / 请求头 | 仅 HTTP。请求头每行一个 `名称: 值`。 |
 | 单次调用超时（毫秒） | 可选；留空使用 60000。 |
 
-![选择远程服务（HTTP）后的卡片](docs/images/mcp-servers-http.zh.png)
+点击 **添加服务器** 会弹出对话框；选择 **远程服务（HTTP）** 后，stdio 字段会
+换成 **服务地址** 和 **请求头**。
 
-按 **添加**。下方列表展示每个已配置服务器的连接目标、**启用** 或 **停用** 开关，
-以及 **删除**。添加已存在的名称会覆盖该条目。
+![选择远程服务（HTTP）后的添加对话框，显示服务地址和请求头字段](docs/images/mcp-servers-http.zh.png)
 
-![添加 filesystem 服务器后的卡片](docs/images/mcp-servers-configured.zh.png)
+填好字段后按 **添加**。页面列出每个已配置服务器的连接目标、**启用** 或 **停用**
+开关，以及 **删除**；添加已存在的名称会覆盖该条目。列表每页显示五条，筛选框
+同时匹配名称和连接目标。
+
+![添加 filesystem 服务器后的页面：该行显示 stdio 目标以及停用、删除操作](docs/images/mcp-servers-configured.zh.png)
 
 ## 在对话中管理服务器
 

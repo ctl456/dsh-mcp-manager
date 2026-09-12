@@ -74,5 +74,5 @@ grep -q "$name" <<<"$dump" || {
 
 echo
 echo "verify-install: OK — $name@$version packs, installs into a fresh profile, and composes its row"
-echo "for the Web UI check, boot it and open Settings -> Plugins -> Plugin configuration -> MCP servers:"
+echo "for the Web UI check, boot it and open Settings -> MCP servers:"
 echo "  DSH_HOME=$DSH_HOME $dsh_bin --profile $profile"

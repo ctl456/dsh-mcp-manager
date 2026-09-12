@@ -15,6 +15,8 @@ import type { SettingsScope } from '@deepseek-ai/dsh-client-ui-settings/client';
 import type { McpManagerKey } from './locales.ts';
 /** Settings namespace the card edits; the Host registers the same value. */
 export declare const MCP_MANAGER_NS = "mcp-manager";
+/** Servers shown per page; the list pages instead of growing without bound. */
+export declare const MCP_MANAGER_PAGE_SIZE = 5;
 /** Transports the Host manager accepts. */
 export type McpTransport = 'stdio' | 'streamable-http';
 /** One server as stored in the settings section. */
@@ -89,6 +91,18 @@ export interface McpManagerCardState {
     error: McpManagerKey | null;
     /** Configured servers, in document order. */
     servers: readonly ServerView[];
+    /** Current filter text; empty shows every server. */
+    query: string;
+    /** How many servers match the current filter. */
+    matched: number;
+    /** Zero-based index of the visible page, clamped to `pageCount`. */
+    page: number;
+    /** Number of pages the filtered list spans; always at least 1. */
+    pageCount: number;
+    /** The current page's slice of the filtered servers. */
+    visible: readonly ServerView[];
+    /** Whether the add dialog is showing. */
+    addOpen: boolean;
     /** The add form's drafts. */
     draft: DraftState;
 }
@@ -100,6 +114,14 @@ export interface McpManagerCardFace {
     hooks: {
         mcpManagerCard: SnapshotStore<McpManagerCardState>;
     };
+    /** Replace the filter text; the list jumps back to the first page. */
+    setQuery(query: string): void;
+    /** Show one page of the filtered list; out-of-range values clamp. */
+    setPage(page: number): void;
+    /** Open the add dialog. */
+    openAdd(): void;
+    /** Close the add dialog, discarding the staged draft. */
+    closeAdd(): void;
     /** Stage draft text for one field. */
     edit(field: DraftField, text: string): void;
     /** Select the transport, which switches which fields the form shows. */

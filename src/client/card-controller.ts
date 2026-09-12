@@ -18,6 +18,9 @@ import type { McpManagerKey } from './locales.ts'
 /** Settings namespace the card edits; the Host registers the same value. */
 export const MCP_MANAGER_NS = 'mcp-manager'
 
+/** Servers shown per page; the list pages instead of growing without bound. */
+export const MCP_MANAGER_PAGE_SIZE = 5
+
 /** Transports the Host manager accepts. */
 export type McpTransport = 'stdio' | 'streamable-http'
 
@@ -97,6 +100,18 @@ export interface McpManagerCardState {
   error: McpManagerKey | null
   /** Configured servers, in document order. */
   servers: readonly ServerView[]
+  /** Current filter text; empty shows every server. */
+  query: string
+  /** How many servers match the current filter. */
+  matched: number
+  /** Zero-based index of the visible page, clamped to `pageCount`. */
+  page: number
+  /** Number of pages the filtered list spans; always at least 1. */
+  pageCount: number
+  /** The current page's slice of the filtered servers. */
+  visible: readonly ServerView[]
+  /** Whether the add dialog is showing. */
+  addOpen: boolean
   /** The add form's drafts. */
   draft: DraftState
 }
@@ -110,6 +125,14 @@ export interface McpManagerCardFace {
   hooks: {
     mcpManagerCard: SnapshotStore<McpManagerCardState>
   }
+  /** Replace the filter text; the list jumps back to the first page. */
+  setQuery(query: string): void
+  /** Show one page of the filtered list; out-of-range values clamp. */
+  setPage(page: number): void
+  /** Open the add dialog. */
+  openAdd(): void
+  /** Close the add dialog, discarding the staged draft. */
+  closeAdd(): void
   /** Stage draft text for one field. */
   edit(field: DraftField, text: string): void
   /** Select the transport, which switches which fields the form shows. */
@@ -171,6 +194,31 @@ function targetOf(server: StoredServer): string {
   return server.transport === 'stdio'
     ? [server.command ?? '', ...(server.args ?? [])].filter(part => part.length > 0).join(' ')
     : (server.url ?? '')
+}
+
+/** The servers matching a filter over both the name and the connection target. */
+function filterServers(servers: readonly ServerView[], query: string): ServerView[] {
+  const needle = query.trim().toLowerCase()
+  if (needle.length === 0) return [...servers]
+  return servers.filter(server =>
+    server.name.toLowerCase().includes(needle) || server.target.toLowerCase().includes(needle))
+}
+
+/**
+ * Re-derive the paginated view from the current servers, filter, and page.
+ * Clamping here as well as in {@link McpManagerCardFace.setPage} keeps the
+ * page valid when a filter change or a pushed update shrinks the list.
+ * @param state - the card state to update in place.
+ */
+function applyFilter(state: McpManagerCardState): void {
+  const filtered = filterServers(state.servers, state.query)
+  const pageCount = Math.max(1, Math.ceil(filtered.length / MCP_MANAGER_PAGE_SIZE))
+  const page = Math.min(Math.max(state.page, 0), pageCount - 1)
+  const start = page * MCP_MANAGER_PAGE_SIZE
+  state.matched = filtered.length
+  state.pageCount = pageCount
+  state.page = page
+  state.visible = filtered.slice(start, start + MCP_MANAGER_PAGE_SIZE)
 }
 
 /** Whether a draft name is a valid server namespace. */
@@ -240,6 +288,12 @@ export class McpManagerCardController {
       saving: false,
       error: null,
       servers: [],
+      query: '',
+      matched: 0,
+      page: 0,
+      pageCount: 1,
+      visible: [],
+      addOpen: false,
       draft: emptyDraft(),
     })
     this.unsubscribe = scope.subscribe(() => { this.project() })
@@ -258,6 +312,14 @@ export class McpManagerCardController {
   inject(): McpManagerCardFace {
     return {
       hooks: { mcpManagerCard: this.store },
+      setQuery: (query) => {
+        this.store.update((state) => { state.query = query; state.page = 0; applyFilter(state) })
+      },
+      setPage: (page) => { this.store.update((state) => { state.page = page; applyFilter(state) }) },
+      openAdd: () => { this.store.update((state) => { state.addOpen = true; state.error = null }) },
+      closeAdd: () => {
+        this.store.update((state) => { state.addOpen = false; state.error = null; state.draft = emptyDraft() })
+      },
       edit: (field, text) => { this.store.update((draft) => { draft.draft[field] = text }) },
       setTransport: (transport) => { this.store.update((draft) => { draft.draft.transport = transport }) },
       add: () => { void this.add() },
@@ -279,10 +341,11 @@ export class McpManagerCardController {
       enabled: server.enabled !== false,
       target: targetOf(server),
     }))
-    this.store.update((draft) => {
-      draft.available = snapshot.status === 'ready'
-      draft.writable = snapshot.writable
-      draft.servers = servers
+    this.store.update((state) => {
+      state.available = snapshot.status === 'ready'
+      state.writable = snapshot.writable
+      state.servers = servers
+      applyFilter(state)
     })
   }
 
@@ -316,7 +379,9 @@ export class McpManagerCardController {
     const entry = stripUndefined(parsed.server)
     const next = this.without(entry.name)
     next.push(entry)
-    if (await this.write(next)) this.store.update((state) => { state.draft = emptyDraft() })
+    if (await this.write(next)) {
+      this.store.update((state) => { state.draft = emptyDraft(); state.addOpen = false })
+    }
   }
 
   /**

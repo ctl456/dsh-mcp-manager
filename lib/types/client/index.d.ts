@@ -1,12 +1,11 @@
 /**
- * Browser half of the MCP manager: register the card's dictionary and
- * contribute the MCP server card into the Plugins settings section under the
- * `mcp-manager` namespace key.
+ * Browser half of the MCP manager: register the page's dictionary and
+ * contribute the MCP servers page as its own `settings.section` entry.
  *
- * The section dispatches one `settings.plugin.item` entry per namespace the
- * Host serves, so registering the key here is what pairs this card with the
- * Host's settings section; a deployment that never composes the manager shows
- * no card.
+ * The section sits below Agent presets (order 25, after general/models/plugins/
+ * agent-presets), so managing MCP servers is a first-class settings page rather
+ * than a tab inside Plugins; a deployment that never composes the manager shows
+ * no page.
  *
  * @module @ctl456/dsh-mcp-manager/client
  */

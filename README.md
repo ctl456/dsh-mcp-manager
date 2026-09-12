@@ -51,9 +51,10 @@ dsh plugin --profile web add file:/abs/path/to/dsh-mcp-manager-0.1.0.tgz
 
 ## Use it in the Web UI
 
-Open **Settings → Plugins → Plugin configuration** and expand **MCP servers**.
+Open **Settings → MCP servers** — its own page in the settings nav, below
+**Agent presets**.
 
-![The MCP servers card on first use: the configured list is empty above the add form](docs/images/mcp-servers-card.png)
+![The MCP servers page on first use: the filter box and Add server button above an empty list](docs/images/mcp-servers-card.png)
 
 | Field | Meaning |
 |---|---|
@@ -63,13 +64,17 @@ Open **Settings → Plugins → Plugin configuration** and expand **MCP servers*
 | Endpoint URL / Headers | HTTP only. One `Name: value` per line. |
 | Per-call timeout (ms) | Optional; blank uses 60000. |
 
-![The card with Remote service (HTTP) selected](docs/images/mcp-servers-http.png)
+**Add server** opens a dialog; choosing **Remote service (HTTP)** swaps the stdio
+fields for **Endpoint URL** and **Headers**.
 
-Press **Add**. The list below shows every configured server with its target, an
-**Enable** or **Disable** switch, and **Remove**. Adding a name that already
-exists replaces that entry.
+![The add dialog with Remote service (HTTP) selected, showing the Endpoint URL and Headers fields](docs/images/mcp-servers-http.png)
 
-![The card after adding a filesystem server](docs/images/mcp-servers-configured.png)
+Fill the fields and press **Add**. The page lists every configured server with its
+target, an **Enable** or **Disable** switch, and **Remove**; a name that already
+exists replaces that entry. The list pages five at a time, and the filter box
+matches on both the name and the connection target.
+
+![The page after adding a filesystem server: the row shows its stdio target with Disable and Remove controls](docs/images/mcp-servers-configured.png)
 
 ## Manage servers from chat
 
